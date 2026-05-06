@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회의록 - 김비서 대시보드</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      min-height: 100vh;
+      padding: 28px;
+      color: #1a1a2e;
+      transition: color 0.4s;
+    }
+
+    :root {
+      --bg-grad-1: #e8edf8;
+      --bg-grad-2: #f0e8ff;
+      --bg-grad-3: #ffe8f5;
+      --card-bg: rgba(255,255,255,0.65);
+      --card-border: rgba(255,255,255,0.85);
+      --card-shadow: 0 8px 32px rgba(80,60,180,0.10), 0 1.5px 4px rgba(80,60,180,0.06);
+      --text-primary: #1a1a2e;
+      --text-secondary: #5a5a7a;
+    }
+
+    [data-theme="dark"] {
+      --bg-grad-1: #0f0f23;
+      --bg-grad-2: #1a0a2e;
+      --bg-grad-3: #0d1a2e;
+      --card-bg: rgba(255,255,255,0.06);
+      --card-border: rgba(255,255,255,0.10);
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0c0;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 50%, var(--bg-grad-3) 100%);
+      z-index: -2;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(ellipse 600px 500px at 20% 20%, rgba(139,92,246,0.18), transparent 70%),
+        radial-gradient(ellipse 500px 400px at 80% 70%, rgba(79,110,247,0.15), transparent 70%);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .date-badge {
+      font-size: 12px;
+      color: #888;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      padding: 7px 16px;
+      border-radius: 24px;
+    }
+
+    /* 네비게이션 메뉴 */
+    .nav-menu {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      padding: 8px;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      width: fit-content;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .nav-item {
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      color: var(--text-primary);
+      background: rgba(79,110,247,0.08);
+      transform: translateY(-1px);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, #6c63ff 0%, #4f6ef7 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(79,110,247,0.3);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 13px;
+      background: rgba(255,255,255,0.3);
+      color: var(--text-primary);
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #6c63ff;
+      box-shadow: 0 0 0 2px rgba(108,99,255,0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px;
+      background: rgba(0,0,0,0.02);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .list-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6c63ff 0%, #4f6ef7 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(79,110,247,0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(79,110,247,0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(79,110,247,0.1);
+      color: #6c63ff;
+      border: 1px solid rgba(79,110,247,0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(79,110,247,0.15);
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 16px; }
+      h1 { font-size: 20px; }
+      .card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📋 회의록</h1>
+  <span class="date-badge">📅 2026년</span>
+</header>
+
+<!-- 네비게이션 메뉴 -->
+<nav class="nav-menu">
+  <a href="dashboard.html" class="nav-item" data-page="dashboard">📊 대시보드</a>
+  <a href="meeting-result.html" class="nav-item active" data-page="meeting">📋 회의록</a>
+  <a href="chart.html" class="nav-item" data-page="chart">📈 매출 현황</a>
+  <a href="diagram.svg" class="nav-item" data-page="diagram">🔄 업무 프로세스</a>
+  <a href="report.html" class="nav-item" data-page="report">🔍 사이트 분석</a>
+</nav>
+
+<div class="container">
+
+  <!-- 회의 정보 -->
+  <div class="card">
+    <h2>📌 회의 정보</h2>
+
+    <div class="form-group">
+      <label>회의 제목</label>
+      <input type="text" placeholder="예: 2026년 3월 마케팅팀 정기 회의">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="form-group">
+        <label>회의 날짜</label>
+        <input type="date">
+      </div>
+      <div class="form-group">
+        <label>회의 시간</label>
+        <input type="time">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>참석자</label>
+      <input type="text" placeholder="예: 김대리, 이과장, 박사원, 정팀장">
+    </div>
+
+    <div class="form-group">
+      <label>장소</label>
+      <input type="text" placeholder="예: 회의실 A, Zoom">
+    </div>
+  </div>
+
+  <!-- 회의 내용 -->
+  <div class="card">
+    <h2>📝 회의 내용</h2>
+
+    <div class="form-group">
+      <label>주요 안건</label>
+      <textarea placeholder="이 회의에서 논의한 주요 주제들을 입력하세요"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>결정 사항</label>
+      <textarea placeholder="회의에서 결정된 내용을 입력하세요"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>다음 회의 일정</label>
+      <input type="date">
+    </div>
+  </div>
+
+  <!-- 액션 아이템 -->
+  <div class="card">
+    <h2>✅ 액션 아이템</h2>
+
+    <div class="list-item">
+      <input type="checkbox">
+      <div style="flex: 1;">
+        <strong style="display: block; margin-bottom: 2px;">과제 1</strong>
+        <span style="font-size: 12px; color: var(--text-secondary);">담당자: 미정 | 마감: 미정</span>
+      </div>
+    </div>
+
+    <div class="list-item">
+      <input type="checkbox">
+      <div style="flex: 1;">
+        <strong style="display: block; margin-bottom: 2px;">과제 2</strong>
+        <span style="font-size: 12px; color: var(--text-secondary);">담당자: 미정 | 마감: 미정</span>
+      </div>
+    </div>
+
+    <div class="list-item">
+      <input type="checkbox">
+      <div style="flex: 1;">
+        <strong style="display: block; margin-bottom: 2px;">과제 3</strong>
+        <span style="font-size: 12px; color: var(--text-secondary);">담당자: 미정 | 마감: 미정</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--card-border);">
+      <div class="form-group">
+        <label>새 과제 추가</label>
+        <input type="text" placeholder="새로운 액션 아이템 입력">
+      </div>
+    </div>
+  </div>
+
+  <!-- 비고 -->
+  <div class="card">
+    <h2>📌 비고</h2>
+    <div class="form-group">
+      <textarea placeholder="추가 의견, 논의 사항 등을 입력하세요"></textarea>
+    </div>
+
+    <div class="button-group">
+      <button class="btn-primary">💾 저장</button>
+      <button class="btn-secondary">🔄 초기화</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // 현재 페이지 활성화
+  function setActiveNav() {
+    const currentFile = window.location.pathname.split('/').pop() || 'meeting-result.html';
+    document.querySelectorAll('.nav-item').forEach(item => {
+      const href = item.getAttribute('href');
+      if (href === currentFile || (currentFile === '' && href === 'meeting-result.html')) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+  }
+
+  setActiveNav();
+
+  // localStorage에 회의록 자동 저장
+  document.querySelectorAll('input, textarea').forEach(element => {
+    element.addEventListener('change', () => {
+      const formData = {};
+      document.querySelectorAll('input, textarea').forEach(el => {
+        formData[el.previousElementSibling?.textContent || 'unnamed'] = el.value;
+      });
+      localStorage.setItem('meetingForm', JSON.stringify(formData));
+    });
+  });
+
+  // 페이지 로드 시 저장된 데이터 복원
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem('meetingForm');
+    if (saved) {
+      const formData = JSON.parse(saved);
+      document.querySelectorAll('input, textarea').forEach(el => {
+        const label = el.previousElementSibling?.textContent;
+        if (label && formData[label]) {
+          el.value = formData[label];
+        }
+      });
+    }
+  });
+
+  // 저장 버튼
+  document.querySelector('.btn-primary').addEventListener('click', () => {
+    alert('✅ 회의록이 저장되었습니다!');
+  });
+
+  // 초기화 버튼
+  document.querySelector('.btn-secondary').addEventListener('click', () => {
+    if (confirm('정말 초기화하시겠습니까?')) {
+      document.querySelectorAll('input, textarea').forEach(el => {
+        el.value = '';
+      });
+      localStorage.removeItem('meetingForm');
+      alert('✓ 초기화되었습니다');
+    }
+  });
+</script>
+
+</body>
+</html>
