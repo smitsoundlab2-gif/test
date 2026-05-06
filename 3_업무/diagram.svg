@@ -1,0 +1,63 @@
+<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .step-box { filter: drop-shadow(0 4px 12px rgba(0,0,0,0.08)); }
+      .step-text { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; font-weight: 700; font-size: 14px; text-anchor: middle; }
+      .step-label { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; font-weight: 500; font-size: 11px; text-anchor: middle; opacity: 0.7; }
+      .arrow { stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#999" />
+    </marker>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="800" height="200" fill="none" />
+
+  <!-- 단계 1: 기획 -->
+  <g class="step-box">
+    <rect x="30" y="50" width="120" height="100" rx="16" fill="#fdd7e4" stroke="#ffb3d9" stroke-width="2" />
+    <text x="90" y="110" class="step-text" fill="#d63384">기획</text>
+    <text x="90" y="130" class="step-label" fill="#666">Planning</text>
+  </g>
+
+  <!-- 화살표 1 -->
+  <line x1="155" y1="100" x2="175" y2="100" class="arrow" stroke="#999" stroke-width="2.5" marker-end="url(#arrowhead)" />
+
+  <!-- 단계 2: 제작 -->
+  <g class="step-box">
+    <rect x="180" y="50" width="120" height="100" rx="16" fill="#ffd4b3" stroke="#ffb366" stroke-width="2" />
+    <text x="240" y="110" class="step-text" fill="#e67e22">제작</text>
+    <text x="240" y="130" class="step-label" fill="#666">Production</text>
+  </g>
+
+  <!-- 화살표 2 -->
+  <line x1="305" y1="100" x2="325" y2="100" class="arrow" stroke="#999" stroke-width="2.5" marker-end="url(#arrowhead)" />
+
+  <!-- 단계 3: 검토 -->
+  <g class="step-box">
+    <rect x="330" y="50" width="120" height="100" rx="16" fill="#fff4d4" stroke="#ffe680" stroke-width="2" />
+    <text x="390" y="110" class="step-text" fill="#e6a800">검토</text>
+    <text x="390" y="130" class="step-label" fill="#666">Review</text>
+  </g>
+
+  <!-- 화살표 3 -->
+  <line x1="455" y1="100" x2="475" y2="100" class="arrow" stroke="#999" stroke-width="2.5" marker-end="url(#arrowhead)" />
+
+  <!-- 단계 4: 배포 -->
+  <g class="step-box">
+    <rect x="480" y="50" width="120" height="100" rx="16" fill="#d4f4d9" stroke="#99d98c" stroke-width="2" />
+    <text x="540" y="110" class="step-text" fill="#2f9e44">배포</text>
+    <text x="540" y="130" class="step-label" fill="#666">Deploy</text>
+  </g>
+
+  <!-- 화살표 4 -->
+  <line x1="605" y1="100" x2="625" y2="100" class="arrow" stroke="#999" stroke-width="2.5" marker-end="url(#arrowhead)" />
+
+  <!-- 단계 5: 분석 -->
+  <g class="step-box">
+    <rect x="630" y="50" width="120" height="100" rx="16" fill="#d4e8f7" stroke="#9ecaff" stroke-width="2" />
+    <text x="690" y="110" class="step-text" fill="#0066cc">분석</text>
+    <text x="690" y="130" class="step-label" fill="#666">Analysis</text>
+  </g>
+</svg>

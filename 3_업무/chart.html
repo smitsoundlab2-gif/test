@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>매출 분석 차트</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      background: linear-gradient(135deg, #e8edf8 0%, #f0e8ff 50%, #ffe8f5 100%);
+      min-height: 100vh;
+      padding: 32px 28px;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 600px 500px at 20% 20%, rgba(139,92,246,0.18), transparent 70%),
+        radial-gradient(ellipse 500px 400px at 80% 70%, rgba(79,110,247,0.15), transparent 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1a1a2e;
+      letter-spacing: -0.5px;
+    }
+
+    .header-badge {
+      font-size: 12px;
+      color: #666;
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.85);
+      padding: 6px 16px;
+      border-radius: 24px;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.85);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(80,60,180,0.10), 0 1.5px 4px rgba(80,60,180,0.06);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .icon-monthly { background: rgba(79,110,247,0.12); }
+    .icon-product { background: rgba(47,158,68,0.12); }
+
+    canvas {
+      width: 100%;
+      height: 300px;
+      display: block;
+      border-radius: 12px;
+      background: rgba(250,250,255,0.4);
+    }
+
+    .legend {
+      display: flex;
+      gap: 20px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #5a5a7a;
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .stats {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: rgba(0,0,0,0.03);
+      border-radius: 10px;
+      padding: 10px 12px;
+      border-left: 3px solid;
+    }
+
+    .stat-box.blue { border-left-color: #4f6ef7; }
+    .stat-box.green { border-left-color: #2f9e44; }
+
+    .stat-label {
+      font-size: 10.5px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+
+    .stat-value {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1a1a2e;
+    }
+
+    .note {
+      font-size: 11px;
+      color: #999;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📊 매출 분석 대시보드</h1>
+  <span class="header-badge">2026년 1월~2월</span>
+</header>
+
+<div class="container">
+
+  <!-- 월별 매출 추이 -->
+  <div class="card">
+    <div class="card-title">
+      <span class="card-icon icon-monthly">📈</span>
+      월별 매출 추이
+    </div>
+    <canvas id="monthlyChart"></canvas>
+    <div class="stats">
+      <div class="stat-box blue">
+        <div class="stat-label">1월 매출</div>
+        <div class="stat-value" id="jan-sales">0원</div>
+      </div>
+      <div class="stat-box green">
+        <div class="stat-label">2월 매출</div>
+        <div class="stat-value" id="feb-sales">0원</div>
+      </div>
+    </div>
+    <div class="note">✓ 누적 매출액 기준</div>
+  </div>
+
+  <!-- 제품별 매출 비교 -->
+  <div class="card">
+    <div class="card-title">
+      <span class="card-icon icon-product">🏆</span>
+      제품별 매출 비교
+    </div>
+    <canvas id="productChart"></canvas>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background:#4f6ef7;"></div>
+        <span>전자기기</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background:#2f9e44;"></div>
+        <span>생활용품</span>
+      </div>
+    </div>
+    <div class="note">✓ 제품별 누적 매출액</div>
+  </div>
+
+</div>
+
+<script>
+  // ═══════════════════════════════════════════
+  // CSV 데이터 (인라인)
+  // ═══════════════════════════════════════════
+  const csvData = [
+    { date: '2026-01-05', product: '무선 이어폰', category: '전자기기', amount: 4005000 },
+    { date: '2026-01-05', product: '보조배터리', category: '전자기기', amount: 1120000 },
+    { date: '2026-01-05', product: '텀블러', category: '생활용품', amount: 1950000 },
+    { date: '2026-01-08', product: '무선 이어폰', category: '전자기기', amount: 4628000 },
+    { date: '2026-01-08', product: '블루투스 스피커', category: '전자기기', amount: 2160000 },
+    { date: '2026-01-08', product: '텀블러', category: '생활용품', amount: 1625000 },
+    { date: '2026-01-12', product: '보조배터리', category: '전자기기', amount: 1435000 },
+    { date: '2026-01-12', product: '무선 충전기', category: '전자기기', amount: 1305000 },
+    { date: '2026-01-12', product: '에코백', category: '생활용품', amount: 1395000 },
+    { date: '2026-01-15', product: '무선 이어폰', category: '전자기기', amount: 3382000 },
+    { date: '2026-01-15', product: '블루투스 스피커', category: '전자기기', amount: 2640000 },
+    { date: '2026-01-15', product: '텀블러', category: '생활용품', amount: 2100000 },
+    { date: '2026-01-19', product: '보조배터리', category: '전자기기', amount: 1925000 },
+    { date: '2026-01-19', product: '에코백', category: '생활용품', amount: 1650000 },
+    { date: '2026-01-19', product: '무선 충전기', category: '전자기기', amount: 1485000 },
+    { date: '2026-01-22', product: '무선 이어폰', category: '전자기기', amount: 5429000 },
+    { date: '2026-01-22', product: '텀블러', category: '생활용품', amount: 1800000 },
+    { date: '2026-01-22', product: '블루투스 스피커', category: '전자기기', amount: 1800000 },
+    { date: '2026-01-26', product: '보조배터리', category: '전자기기', amount: 1680000 },
+    { date: '2026-01-26', product: '에코백', category: '생활용품', amount: 1320000 },
+    { date: '2026-01-26', product: '무선 충전기', category: '전자기기', amount: 1665000 },
+    { date: '2026-02-01', product: '무선 이어폰', category: '전자기기', amount: 6230000 },
+    { date: '2026-02-01', product: '텀블러', category: '생활용품', amount: 2375000 },
+    { date: '2026-02-01', product: '보조배터리', category: '전자기기', amount: 1505000 },
+    { date: '2026-02-05', product: '블루투스 스피커', category: '전자기기', amount: 3000000 },
+    { date: '2026-02-05', product: '에코백', category: '생활용품', amount: 1800000 },
+    { date: '2026-02-05', product: '무선 충전기', category: '전자기기', amount: 1395000 },
+    { date: '2026-02-10', product: '무선 이어폰', category: '전자기기', amount: 5162000 },
+    { date: '2026-02-10', product: '텀블러', category: '생활용품', amount: 1675000 },
+    { date: '2026-02-10', product: '보조배터리', category: '전자기기', amount: 1365000 },
+  ];
+
+  // ═══════════════════════════════════════════
+  // 유틸리티 함수
+  // ═══════════════════════════════════════════
+  function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  function extractMonth(dateStr) {
+    return dateStr.substring(5, 7); // "01", "02"
+  }
+
+  // ═══════════════════════════════════════════
+  // 데이터 집계
+  // ═══════════════════════════════════════════
+  const monthlyData = {};
+  const productData = {};
+
+  csvData.forEach(row => {
+    const month = extractMonth(row.date);
+    const product = row.product;
+    const category = row.category;
+    const amount = row.amount;
+
+    // 월별 집계
+    monthlyData[month] = (monthlyData[month] || 0) + amount;
+
+    // 제품별 집계
+    if (!productData[product]) {
+      productData[product] = { amount: 0, category: category };
+    }
+    productData[product].amount += amount;
+  });
+
+  // ═══════════════════════════════════════════
+  // 월별 차트 (선 그래프)
+  // ═══════════════════════════════════════════
+  const monthlyCanvas = document.getElementById('monthlyChart');
+  const monthlyCtx = monthlyCanvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+
+  monthlyCanvas.width = monthlyCanvas.offsetWidth * dpr;
+  monthlyCanvas.height = monthlyCanvas.offsetHeight * dpr;
+  monthlyCtx.scale(dpr, dpr);
+
+  const w = monthlyCanvas.offsetWidth;
+  const h = monthlyCanvas.offsetHeight;
+
+  const months = ['01', '02'];
+  const monthLabels = ['1월', '2월'];
+  const monthValues = months.map(m => monthlyData[m] || 0);
+
+  const maxValue = Math.max(...monthValues);
+  const padding = 40;
+  const graphW = w - padding * 2;
+  const graphH = h - padding * 2;
+  const pointSpacing = graphW / (months.length - 1 || 1);
+
+  // 배경
+  monthlyCtx.fillStyle = 'rgba(250,250,255,0.4)';
+  monthlyCtx.fillRect(0, 0, w, h);
+
+  // 그리드 라인
+  monthlyCtx.strokeStyle = 'rgba(0,0,0,0.05)';
+  monthlyCtx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padding + (graphH / 4) * i;
+    monthlyCtx.beginPath();
+    monthlyCtx.moveTo(padding, y);
+    monthlyCtx.lineTo(w - padding, y);
+    monthlyCtx.stroke();
+  }
+
+  // Y축 레이블
+  monthlyCtx.fillStyle = '#999';
+  monthlyCtx.font = '11px sans-serif';
+  monthlyCtx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const val = (maxValue / 4) * i;
+    const y = h - padding + 4 - (graphH / 4) * i;
+    monthlyCtx.fillText(formatNumber(Math.round(val / 1000000)) + '백만', padding - 8, y);
+  }
+
+  // 선 그래프 그리기
+  monthlyCtx.strokeStyle = '#4f6ef7';
+  monthlyCtx.lineWidth = 3;
+  monthlyCtx.lineJoin = 'round';
+  monthlyCtx.lineCap = 'round';
+  monthlyCtx.beginPath();
+
+  monthValues.forEach((val, idx) => {
+    const x = padding + pointSpacing * idx;
+    const y = h - padding - (val / maxValue) * graphH;
+    if (idx === 0) {
+      monthlyCtx.moveTo(x, y);
+    } else {
+      monthlyCtx.lineTo(x, y);
+    }
+  });
+  monthlyCtx.stroke();
+
+  // 점 그리기
+  monthlyCtx.fillStyle = '#4f6ef7';
+  monthValues.forEach((val, idx) => {
+    const x = padding + pointSpacing * idx;
+    const y = h - padding - (val / maxValue) * graphH;
+    monthlyCtx.beginPath();
+    monthlyCtx.arc(x, y, 5, 0, Math.PI * 2);
+    monthlyCtx.fill();
+  });
+
+  // 값 레이블
+  monthlyCtx.fillStyle = '#1a1a2e';
+  monthlyCtx.font = 'bold 13px sans-serif';
+  monthlyCtx.textAlign = 'center';
+  monthValues.forEach((val, idx) => {
+    const x = padding + pointSpacing * idx;
+    const y = h - padding - (val / maxValue) * graphH - 15;
+    monthlyCtx.fillText(formatNumber(Math.round(val / 1000000)) + 'M', x, y);
+  });
+
+  // X축 레이블
+  monthlyCtx.fillStyle = '#666';
+  monthlyCtx.font = '12px sans-serif';
+  monthlyCtx.textAlign = 'center';
+  monthLabels.forEach((label, idx) => {
+    const x = padding + pointSpacing * idx;
+    const y = h - 10;
+    monthlyCtx.fillText(label, x, y);
+  });
+
+  // 통계 업데이트
+  document.getElementById('jan-sales').textContent = formatNumber(monthlyData['01'] || 0) + '원';
+  document.getElementById('feb-sales').textContent = formatNumber(monthlyData['02'] || 0) + '원';
+
+  // ═══════════════════════════════════════════
+  // 제품별 차트 (막대 그래프)
+  // ═══════════════════════════════════════════
+  const productCanvas = document.getElementById('productChart');
+  const productCtx = productCanvas.getContext('2d');
+
+  productCanvas.width = productCanvas.offsetWidth * dpr;
+  productCanvas.height = productCanvas.offsetHeight * dpr;
+  productCtx.scale(dpr, dpr);
+
+  const pw = productCanvas.offsetWidth;
+  const ph = productCanvas.offsetHeight;
+
+  // 제품 정렬 (매출 높은 순)
+  const sortedProducts = Object.entries(productData)
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const productNames = sortedProducts.map(p => p.name);
+  const productValues = sortedProducts.map(p => p.amount);
+  const productCategories = sortedProducts.map(p => p.category);
+
+  const maxProd = Math.max(...productValues);
+  const barCount = productNames.length;
+  const barW = (pw - padding * 2) / barCount - 8;
+  const graphH2 = ph - padding * 2;
+
+  // 배경
+  productCtx.fillStyle = 'rgba(250,250,255,0.4)';
+  productCtx.fillRect(0, 0, pw, ph);
+
+  // 그리드
+  productCtx.strokeStyle = 'rgba(0,0,0,0.05)';
+  productCtx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padding + (graphH2 / 4) * i;
+    productCtx.beginPath();
+    productCtx.moveTo(padding, y);
+    productCtx.lineTo(pw - padding, y);
+    productCtx.stroke();
+  }
+
+  // Y축 레이블
+  productCtx.fillStyle = '#999';
+  productCtx.font = '10px sans-serif';
+  productCtx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const val = (maxProd / 4) * i;
+    const y = ph - padding + 3 - (graphH2 / 4) * i;
+    productCtx.fillText(formatNumber(Math.round(val / 1000000)) + 'M', padding - 6, y);
+  }
+
+  // 막대 그리기
+  const barColors = {
+    '전자기기': '#4f6ef7',
+    '생활용품': '#2f9e44'
+  };
+
+  sortedProducts.forEach((prod, idx) => {
+    const x = padding + idx * (barW + 8);
+    const barHeight = (prod.amount / maxProd) * graphH2;
+    const y = ph - padding - barHeight;
+
+    // 막대
+    productCtx.fillStyle = barColors[prod.category];
+    productCtx.fillRect(x, y, barW, barHeight);
+
+    // 값 레이블 (위)
+    productCtx.fillStyle = '#1a1a2e';
+    productCtx.font = 'bold 11px sans-serif';
+    productCtx.textAlign = 'center';
+    productCtx.fillText(formatNumber(Math.round(prod.amount / 1000000)) + 'M', x + barW / 2, y - 8);
+  });
+
+  // X축 레이블
+  productCtx.fillStyle = '#666';
+  productCtx.font = '10px sans-serif';
+  productCtx.textAlign = 'center';
+  productCtx.save();
+  sortedProducts.forEach((prod, idx) => {
+    const x = padding + idx * (barW + 8) + barW / 2;
+    const y = ph - 8;
+
+    // 텍스트 높이 줄이기 위해 짧게
+    const shortName = prod.name.length > 6 ? prod.name.substring(0, 5) + '...' : prod.name;
+    productCtx.fillText(shortName, x, y);
+  });
+  productCtx.restore();
+</script>
+
+</body>
+</html>
